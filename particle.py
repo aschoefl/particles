@@ -14,11 +14,11 @@ random.seed = 42
 ## collision_type: 0-lines, 1-particle
 
 ## GLOBALS
-GRAPHICS = False
+GRAPHICS = True
 T = 273 # Kelvin
 k = 1.38064852 # eigentlich 10^-23
 SPACE_SIZE = 1000
-ELASTICITY = 0.999 # should not be >= 1 according to homepage
+ELASTICITY = 0.999 # should not be >= 1 according to docu of pymunk
 LINES_RADIUS = 4
 AMOUNT_OF_NO = 300
 AMOUNT_OF_O3 = 300
@@ -30,9 +30,9 @@ VELOCITY_STD_NO = (k*T/MASS_OF_NO*(2-(2**(3/2)-4))*constants.pi)**(1/2)*10**(3/2
 VELOCITY_MEAN_O3 = (4*k*T/MASS_OF_O3)**(1/2)*10**(3/2)
 VELOCITY_STD_O3 = (k*T/MASS_OF_NO*(2-(2**(3/2)-4))*constants.pi)**(1/2)*10**(3/2)  #(k*T/MASS_OF_O3*(4*constants.pi-2))**(1/2)
 REACTION_ENERGY = 1.93*10**6 # eigentlich 10^-20 J
-MAX_TIME = 1000
+MAX_TIME = 500
 MAX_ROUNDS = 300
-DT = 0.001 # timestep
+DT = 0.01 # timestep was 0.001
 
 amount_of_reactions = 0
 
@@ -183,10 +183,10 @@ def main():
 
                 space.debug_draw(draw_options)
 
-                space.step(1/50.0)
+                space.step(DT) # was 1./50
 
                 pygame.display.flip()
-                clock.tick(50)
+                clock.tick(1./DT)
         else:
             for time in range(0, MAX_TIME):
                 space.step(DT)
