@@ -15,21 +15,23 @@ random.seed = 42
 
 ## GLOBALS
 GRAPHICS = True
-T = 273 # Kelvin
+T = 410 # Kelvin 273
 k = 1.38064852 # eigentlich 10^-23
 SPACE_SIZE = 1000
 ELASTICITY = 0.999 # should not be >= 1 according to docu of pymunk
 LINES_RADIUS = 4
-AMOUNT_OF_NO = 300
-AMOUNT_OF_O3 = 300
+AMOUNT_OF_NO = 500
+AMOUNT_OF_O3 = 500
 RADIUS_OF_PARTICLES = 1 # eigentlich 10^-10 m
 MASS_OF_NO = (2.3+2.67)  # eigentlich 10^-26 kg
 MASS_OF_O3 = 2.67*3     # eigentlich 10^-26 kg
 VELOCITY_MEAN_NO = (4*k*T/MASS_OF_NO)**(1/2)*10**(3/2)
 VELOCITY_STD_NO = (k*T/MASS_OF_NO*(2-(2**(3/2)-4))*constants.pi)**(1/2)*10**(3/2)  #(k*T/MASS_OF_NO*(4*constants.pi-2))**(1/2)
 VELOCITY_MEAN_O3 = (4*k*T/MASS_OF_O3)**(1/2)*10**(3/2)
-VELOCITY_STD_O3 = (k*T/MASS_OF_NO*(2-(2**(3/2)-4))*constants.pi)**(1/2)*10**(3/2)  #(k*T/MASS_OF_O3*(4*constants.pi-2))**(1/2)
-REACTION_ENERGY = 1.93*10**6 # eigentlich 10^-20 J
+VELOCITY_STD_O3 = (k*T/MASS_OF_O3*(2-(2**(3/2)-4))*constants.pi)**(1/2)*10**(3/2)  #(k*T/MASS_OF_O3*(4*constants.pi-2))**(1/2)
+
+THRESHOLD_ENERGY = 1.93*10**(-10) # eigentlich 10^-20 J
+REACTION_ENERGY = 3.283*10**(-9) # actually 3,283*10^-19 J
 MAX_TIME = 500
 MAX_ROUNDS = 300
 DT = 0.01 # timestep was 0.001
@@ -114,14 +116,17 @@ def addLines(space):
     space.add(lines[0], lines[1], lines[2], lines[3], body)
 
 def reaction(v1, v2, m1, m2):
-    try:
-        if REACTION_ENERGY*2*(m1+m2)/((v1-v2)**2*m1*m2) >= 0:
-            return True
-        else:
-            return False
-    except:
+    if m1*m2*(v1-v2)**2/(2*(m1+m2)) >= THRESHOLD_ENERGY:
+        return True
+    else:
         return False
 
+def set_new_velocites(p1, p2):
+    # divide ekin by 2 beacause apparently s[j].body.kinetic_energy === np.linalg.norm(s[j].body.velocity)**2*s[j].body.mass
+    alpha = 1 + REACTION_ENERGY/(p1.body.kinetic_energy/2+p2.body.kinetic_energy/2)
+    p1.body.velocity = p1.body.velocity*alpha
+    p2.body.velocity = p2.body.velocity*alpha
+    
 def collision_handler(arbiter, space, data):
     global amount_of_reactions
     s = arbiter.shapes
@@ -135,6 +140,7 @@ def collision_handler(arbiter, space, data):
                             s[j].body.mass, s[i].body.mass):
                     s[j].molecule_type = "NO2"
                     s[i].molecule_type = "O2"
+                    set_new_velocites(s[i],s[j])
                     amount_of_reactions += 1
                     #print("reaction")
                     break
@@ -144,6 +150,7 @@ def collision_handler(arbiter, space, data):
                             s[j].body.mass, s[i].body.mass):
                     s[j].molecule_type = "O2"
                     s[i].molecule_type = "NO2"
+                    set_new_velocites(s[i],s[j])
                     amount_of_reactions += 1
                     #print("reaction")
                     break
