@@ -40,9 +40,7 @@ random.seed = 42
 ## initiate global counter
 amount_of_reactions = 0
 
-##############################
-## 
-##############################
+
 def addParticles(space, amount_list, molecule_type_list, existing_particles = []):
     """ 
     function that adds particles for an existing space
